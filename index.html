@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>《完蛋！我被AI包围了》POV 机位透视与布光导演台</title>
+<style>
+  :root {
+    --bg: #0b0f17;
+    --panel: #121826;
+    --panel-2: #182132;
+    --border: #253147;
+    --text: #e6edf7;
+    --muted: #8b9bb4;
+    --accent: #38bdf8;
+    --ok: #22c55e;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand h1 {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(56, 189, 248, 0.14);
+    color: var(--accent);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    font-weight: 600;
+  }
+  .status-pill {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .status-ok {
+    background: rgba(34, 197, 94, 0.14);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+  }
+  .status-warn {
+    background: rgba(245, 158, 11, 0.16);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.45);
+  }
+  .top-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  button, select {
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  button:hover, select:hover { border-color: var(--accent); }
+  button.primary {
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    border-color: #38bdf8;
+    color: #fff;
+    font-weight: 600;
+  }
+  button.primary:hover { filter: brightness(1.1); }
+  button.success {
+    background: rgba(34, 197, 94, 0.16);
+    border-color: rgba(34, 197, 94, 0.5);
+    color: #4ade80;
+    font-weight: 600;
+  }
+
+  .workspace {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 400px 1fr 370px;
+    gap: 14px;
+    padding: 14px;
+    max-width: 1680px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  @media (max-width: 1240px) {
+    .workspace { grid-template-columns: 360px 1fr; }
+    .col-right { grid-column: 1 / -1; }
+  }
+  @media (max-width: 820px) {
+    .workspace { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 600;
+    background: rgba(255,255,255,0.02);
+  }
+  .card-header span.sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+  .viewfinder-wrap {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  #viewfinderCanvas {
+    width: 100%;
+    max-width: 360px;
+    aspect-ratio: 9 / 16;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background: #1a1d24;
+    display: block;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+  }
+  .floorplan-wrap {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+  }
+  #floorplanCanvas {
+    width: 100%;
+    height: 470px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background: #0e1420;
+    cursor: grab;
+    display: block;
+  }
+  #floorplanCanvas:active { cursor: grabbing; }
+  .hint-bar {
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .controls-scroll {
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+    max-height: calc(100vh - 96px);
+  }
+  .section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+  .slider-row {
+    display: grid;
+    grid-template-columns: 88px 1fr 48px;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  .slider-row input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+  .val {
+    text-align: right;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    color: var(--accent);
+  }
+  .toggle-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .toggle-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    background: var(--panel-2);
+    padding: 6px 8px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle-item input { accent-color: var(--accent); cursor: pointer; }
+
+  .char-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .char-card {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .char-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .char-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .char-meta {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .char-btns {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .mini-btn {
+    padding: 2px 7px;
+    font-size: 11px;
+    border-radius: 5px;
+  }
+  .mini-btn.active {
+    background: rgba(56, 189, 248, 0.22);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .action-input {
+    width: 100%;
+    background: #0d1320;
+    border: 1px solid #263248;
+    color: #cbd5e1;
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+
+  .prompt-box {
+    width: 100%;
+    min-height: 165px;
+    background: #0b101b;
+    color: #dbeafe;
+    border: 1px solid #2a3954;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 11.5px;
+    line-height: 1.55;
+    resize: vertical;
+    font-family: "PingFang SC", "Microsoft YaHei", monospace;
+  }
+  .prompt-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1e293b;
+    color: #f8fafc;
+    border: 1px solid #38bdf8;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s ease;
+    z-index: 999;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>🎬 《完蛋！我被AI包围了》POV 透视与布光导演台</h1>
+    <span class="badge">Series Studio · v2.0</span>
+  </div>
+  <div id="occlusionPill" class="status-pill status-ok">✅ 四人视线零遮挡</div>
+  <div class="top-actions">
+    <select id="presetSelect" title="切换剧集/镜头预设">
+      <option value="ep01_opening">EP.01 · 00:00 100块奖金开场</option>
+      <option value="ep01_sneak">EP.01 · 00:18 抱胳膊撒泼+背后偷溜</option>
+      <option value="sofa_chat">通用模板 · 客厅沙发围坐</option>
+      <option value="door_ambush">通用模板 · 玄关门口堵人</option>
+    </select>
+    <button id="btnImportJson">📂 导入分镜 JSON</button>
+    <input type="file" id="jsonFileInput" accept=".json" style="display:none" />
+    <button id="btnExportJson">💾 导出分镜 JSON</button>
+    <button id="btnExportPng" class="primary">📸 导出 1080×1920 构图底图 (PNG)</button>
+  </div>
+</header>
+
+<div class="workspace">
+  <!-- LEFT: 9:16 Live Viewfinder -->
+  <div class="card">
+    <div class="card-header">
+      <span>📷 9:16 实时 35mm 透视取景器</span>
+      <span class="sub" id="fovLabel">30mm · VFOV 61.9°</span>
+    </div>
+    <div class="viewfinder-wrap">
+      <canvas id="viewfinderCanvas" width="540" height="960"></canvas>
+      <div style="width:100%; display:flex; gap:8px; justify-content:space-between; align-items:center;">
+        <label class="toggle-item" style="flex:1; justify-content:center;">
+          <input type="checkbox" id="chkCleanMode" />
+          <span>🎨 纯净构图底图模式（去标注）</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: 2D Interactive Top-Down Floorplan + Dynamic Prompt -->
+  <div class="card">
+    <div class="card-header">
+      <span>🗺️ 客厅俯视机位平面图（可直接拖拽人物与机位）</span>
+      <span class="sub">房间尺寸 5.2m × 5.6m · 网格 0.5m</span>
+    </div>
+    <div class="floorplan-wrap">
+      <canvas id="floorplanCanvas" width="760" height="520"></canvas>
+      <div class="hint-bar">
+        <span>💡 拖动彩色圆点调整四位女主站位，拖动蓝色摄影机图标微调男主 POV 机位</span>
+        <span id="cursorCoord">X: 0.00m, Z: 0.00m</span>
+      </div>
+
+      <div style="margin-top:4px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span class="section-title" style="margin:0;">✨ 实时联动 · Seedream 5.5 纯净首帧提示词（零冗余约束）</span>
+          <div style="display:flex; gap:6px;">
+            <button id="btnCopyPrompt" class="success">📋 一键复制提示词</button>
+          </div>
+        </div>
+        <textarea id="promptOutput" class="prompt-box" spellcheck="false"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Camera, Lighting, Overlays, Character Inspector -->
+  <div class="card col-right">
+    <div class="card-header">
+      <span>🎛️ 摄影机 / 布光 / 角色调度</span>
+      <button id="btnResetPreset" class="mini-btn">↺ 复位当前预设</button>
+    </div>
+    <div class="controls-scroll">
+      <div>
+        <div class="section-title">摄影机参数（35mm 针孔模型）</div>
+        <div class="slider-row">
+          <span>等效焦距</span>
+          <input type="range" id="slFocal" min="20" max="50" step="1" value="30" />
+          <span class="val" id="valFocal">30mm</span>
+        </div>
+        <div class="slider-row">
+          <span>机位高度 Y</span>
+          <input type="range" id="slCamY" min="0.85" max="1.75" step="0.02" value="1.18" />
+          <span class="val" id="valCamY">1.18m</span>
+        </div>
+        <div class="slider-row">
+          <span>俯仰角 Pitch</span>
+          <input type="range" id="slPitch" min="-15" max="12" step="0.5" value="-3.5" />
+          <span class="val" id="valPitch">-3.5°</span>
+        </div>
+        <div class="slider-row">
+          <span>偏航角 Yaw</span>
+          <input type="range" id="slYaw" min="-20" max="20" step="0.5" value="0" />
+          <span class="val" id="valYaw">0.0°</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">三点布光预设（真实客厅光影）</div>
+        <select id="lightingSelect" style="width:100%; margin-bottom:8px;">
+          <option value="afternoon_4800k">☀️ 午后暖阳（4800K 右窗侧逆主光 + 5600K 漫射补光）</option>
+          <option value="morning_5600k">🌤️ 清晨通透（5600K 清亮自然窗光 + 柔白反光）</option>
+          <option value="night_3200k">🌙 深夜温馨（3200K 落地暖灯主光 + 冷蓝窗外轮廓）</option>
+          <option value="overcast_5200k">☁️ 阴天柔光（5200K 大面积均匀无硬影漫射光）</option>
+        </select>
+
+        <div class="section-title" style="margin-top:8px;">辅助图层开关</div>
+        <div class="toggle-grid">
+          <label class="toggle-item"><input type="checkbox" id="chkPerspective" checked /><span>透视灭点线</span></label>
+          <label class="toggle-item"><input type="checkbox" id="chkLights" checked /><span>布光方向射线</span></label>
+          <label class="toggle-item"><input type="checkbox" id="chkMotion" checked /><span>偷溜/走位动线</span></label>
+          <label class="toggle-item"><input type="checkbox" id="chkSafeZone" checked /><span>抖音/B站安全区</span></label>
+          <label class="toggle-item"><input type="checkbox" id="chkPovHand" checked /><span>前景男主手+钞票</span></label>
+          <label class="toggle-item"><input type="checkbox" id="chkFurniture" checked /><span>全套客厅家具</span></label>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">角色调度与姿态（可切坐姿/微调动作词）</div>
+        <div id="charList" class="char-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast">已复制到剪贴板</div>
+
+<script>
+// ==================== DATA & PRESETS ====================
+const ROOM = {
+  minX: -2.6, maxX: 2.6,
+  minZ: 0.0,  maxZ: 5.5,
+  height: 2.85
+};
+
+const LIGHTING_PRESETS = {
+  afternoon_4800k: {
+    name: "午后暖阳 4800K",
+    wallTop: "#d9d2c5", wallBottom: "#bfb5a4",
+    floorBase: "#b58b60", floorLine: "#966d46",
+    sunColor: "rgba(255, 214, 153, 0.28)",
+    rayColor: "#fbbf24",
+    fillColor: "#93c5fd",
+    promptDesc: "右侧大落地窗白纱帘透入4800K温暖午后侧逆自然主光，在人物右侧发丝与肩头勾勒柔和暖金轮廓光；室内浅色墙面形成5600K柔和漫射补光，保证人物面部肤质通透不死黑；原木地板与家具底部呈现自然柔和的左向环境投影，35mm电影镜头低饱和胶片调色与轻微自然浅景深"
+  },
+  morning_5600k: {
+    name: "清晨通透 5600K",
+    wallTop: "#e2e8f0", wallBottom: "#cbd5e1",
+    floorBase: "#c49e77", floorLine: "#a37e58",
+    sunColor: "rgba(224, 242, 254, 0.30)",
+    rayColor: "#bae6fd",
+    fillColor: "#e2e8f0",
+    promptDesc: "右侧落地窗透入5600K清亮柔和的清晨自然日光，白纱帘柔化直射光，人物面部受光均匀通透白皙，暗部阴影极浅，整体呈现清新通透的日剧电影感与轻微自然浅景深"
+  },
+  night_3200k: {
+    name: "深夜温馨 3200K",
+    wallTop: "#2b3040", wallBottom: "#1d212e",
+    floorBase: "#6e5038", floorLine: "#523a27",
+    sunColor: "rgba(251, 191, 36, 0.22)",
+    rayColor: "#f59e0b",
+    fillColor: "#60a5fa",
+    promptDesc: "夜晚室内布光：沙发右侧暖色落地灯提供3200K温暖琥珀色主光，右侧落地窗外透入微弱的6500K清冷月光/城市冷蓝边缘轮廓光，形成高级冷暖对比电影布光，人物肤质柔和自然，35mm胶片暗部细腻有层次"
+  },
+  overcast_5200k: {
+    name: "阴天柔光 5200K",
+    wallTop: "#d7dce2", wallBottom: "#c1c8d0",
+    floorBase: "#ad8964", floorLine: "#8c6a49",
+    sunColor: "rgba(241, 245, 249, 0.22)",
+    rayColor: "#e2e8f0",
+    fillColor: "#cbd5e1",
+    promptDesc: "右侧落地窗提供5200K阴天大面积柔和漫射天光，光线极其均匀无生硬硬阴影，人物肤色、发色与重工哑光礼服原色还原度极高，呈现写实高定影视实拍质感"
+  }
+};
+
+function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+const PRESETS = {
+  ep01_opening: {
+    episode: "EP.01",
+    shotTitle: "00:00 100块奖金开场",
+    camera: { x: 0.0, y: 1.18, z: 0.20, focal: 30, pitch: -3.5, yaw: 0.0 },
+    lighting: "afternoon_4800k",
+    showPovHand: true,
+    povPropText: "左下方前景露出拍摄者（男主）的真实男性左手，指尖平整捏着一张100元人民币红色纸币朝镜头前展示",
+    characters: [
+      { id: "deepseek", name: "大肥鱼", refTag: "@图1", color: "#38bdf8", hair: "#2563eb", dress: "#1e3a5f", x: -0.12, z: 2.45, height: 1.62, seated: false, visible: true, action: "眼睛发亮、兴高采烈地抬头盯着前景男主手中的100元红钞票" },
+      { id: "claude",   name: "小克",   refTag: "@图2", color: "#f97316", hair: "#c25e26", dress: "#e5dccb", x: -0.74, z: 3.45, height: 1.68, seated: false, visible: true, action: "双臂优雅抱胸，面无表情地微抬下巴淡淡瞥着前方的大肥鱼" },
+      { id: "gemini",   name: "哈基米", refTag: "@图5", color: "#c084fc", hair: "#8b5cf6", dress: "#3b2f63", x:  0.72, z: 3.35, height: 1.56, seated: false, visible: true, action: "微歪着头，带着古灵精怪的看热闹甜酷笑容" },
+      { id: "gpt",      name: "GPT",    refTag: "@图3与@图4", color: "#e2e8f0", hair: "#e2e8f0", dress: "#f8fafc", x: 0.44, z: 4.65, height: 1.75, seated: true, visible: true, action: "优雅舒展地靠坐在浅灰布艺沙发上，白色龙翼自然收拢贴背，一手轻托香腮微笑看戏" }
+    ],
+    motionPaths: [
+      { label: "00:18 小克偷溜动线", color: "#fbbf24", points: [[-0.74, 3.45], [-1.05, 4.25], [-1.32, 5.18]] },
+      { label: "哈基米跟溜动线", color: "#c084fc", points: [[0.72, 3.35], [-0.15, 3.95], [-1.18, 5.08]] }
+    ]
+  },
+  ep01_sneak: {
+    episode: "EP.01",
+    shotTitle: "00:18 抱胳膊撒泼+背后偷溜",
+    camera: { x: 0.0, y: 1.18, z: 0.20, focal: 30, pitch: -3.5, yaw: 0.0 },
+    lighting: "afternoon_4800k",
+    showPovHand: true,
+    povPropText: "男主右手被前景大肥鱼抱住，左手悄悄越过前方将100元红钞票递向后方并轻比嘘手势",
+    characters: [
+      { id: "deepseek", name: "大肥鱼", refTag: "@图1", color: "#38bdf8", hair: "#2563eb", dress: "#1e3a5f", x: 0.24, z: 1.75, height: 1.62, seated: false, visible: true, action: "扑近镜头右侧，双手抱住男主右臂衣袖埋头闭眼撒娇耍赖，背对客厅后门" },
+      { id: "claude",   name: "小克",   refTag: "@图2", color: "#f97316", hair: "#c25e26", dress: "#e5dccb", x: -0.96, z: 4.35, height: 1.68, seated: false, visible: true, action: "捏着100元红钞票，轻提复古长裙微微猫腰踮脚往左后方木质房门偷溜" },
+      { id: "gemini",   name: "哈基米", refTag: "@图5", color: "#c084fc", hair: "#8b5cf6", dress: "#3b2f63", x: -0.42, z: 3.95, height: 1.56, seated: false, visible: true, action: "紧跟小克踮脚轻溜，压低声音俏皮偷笑并回头朝镜头做鬼脸" },
+      { id: "gpt",      name: "GPT",    refTag: "@图3与@图4", color: "#e2e8f0", hair: "#e2e8f0", dress: "#f8fafc", x: 0.64, z: 4.65, height: 1.75, seated: true, visible: true, action: "优雅靠坐在沙发上轻掩嘴唇，笑意盈盈看着前方的闹剧" }
+    ],
+    motionPaths: [
+      { label: "小克溜向木门", color: "#fbbf24", points: [[-0.96, 4.35], [-1.30, 5.20]] },
+      { label: "哈基米跟进", color: "#c084fc", points: [[-0.42, 3.95], [-1.15, 5.05]] }
+    ]
+  },
+  sofa_chat: {
+    episode: "模板",
+    shotTitle: "客厅沙发四人围坐日常",
+    camera: { x: 0.0, y: 1.12, z: 0.35, focal: 28, pitch: -4.0, yaw: 0.0 },
+    lighting: "afternoon_4800k",
+    showPovHand: false,
+    povPropText: "第一人称坐在客厅前景看向沙发区",
+    characters: [
+      { id: "deepseek", name: "大肥鱼", refTag: "@图1", color: "#38bdf8", hair: "#2563eb", dress: "#1e3a5f", x: -0.52, z: 3.15, height: 1.62, seated: true, visible: true, action: "盘腿坐在米白地毯茶几左侧，仰头期待地看着男主" },
+      { id: "claude",   name: "小克",   refTag: "@图2", color: "#f97316", hair: "#c25e26", dress: "#e5dccb", x: -0.25, z: 4.65, height: 1.68, seated: true, visible: true, action: "端庄优雅地坐在浅灰沙发左侧，双腿交叠淡淡注视镜头" },
+      { id: "gpt",      name: "GPT",    refTag: "@图3与@图4", color: "#e2e8f0", hair: "#e2e8f0", dress: "#f8fafc", x: 0.45, z: 4.65, height: 1.75, seated: true, visible: true, action: "温婉从容地靠坐在沙发右侧，白色龙翼自然收拢贴背" },
+      { id: "gemini",   name: "哈基米", refTag: "@图5", color: "#c084fc", hair: "#8b5cf6", dress: "#3b2f63", x: 0.65, z: 3.10, height: 1.56, seated: true, visible: true, action: "坐在茶几右侧地毯上托着下巴俏皮眨眼" }
+    ],
+    motionPaths: []
+  },
+  door_ambush: {
+    episode: "模板",
+    shotTitle: "客厅迎门四人包围开场",
+    camera: { x: 0.0, y: 1.55, z: 0.25, focal: 28, pitch: -6.0, yaw: 0.0 },
+    lighting: "morning_5600k",
+    showPovHand: false,
+    povPropText: "男主刚推门走进客厅的第一人称站立视角",
+    characters: [
+      { id: "deepseek", name: "大肥鱼", refTag: "@图1", color: "#38bdf8", hair: "#2563eb", dress: "#1e3a5f", x: -0.28, z: 2.35, height: 1.62, seated: false, visible: true, action: "冲到最前面热情招手迎接男主回家" },
+      { id: "gemini",   name: "哈基米", refTag: "@图5", color: "#c084fc", hair: "#8b5cf6", dress: "#3b2f63", x: 0.36, z: 2.55, height: 1.56, seated: false, visible: true, action: "俏皮探身歪头凑近镜头笑眯眯打招呼" },
+      { id: "claude",   name: "小克",   refTag: "@图2", color: "#f97316", hair: "#c25e26", dress: "#e5dccb", x: -0.82, z: 3.65, height: 1.68, seated: false, visible: true, action: "站在中景左侧抱臂淡然看着刚进门的男主" },
+      { id: "gpt",      name: "GPT",    refTag: "@图3与@图4", color: "#e2e8f0", hair: "#e2e8f0", dress: "#f8fafc", x: 0.82, z: 3.95, height: 1.75, seated: false, visible: true, action: "优雅立于中后景右侧，温柔微笑点点头" }
+    ],
+    motionPaths: []
+  }
+};
+
+// Active state
+let state = deepClone(PRESETS.ep01_opening);
+let activePresetKey = "ep01_opening";
+let uiFlags = {
+  cleanMode: false,
+  perspective: true,
+  lights: true,
+  motion: true,
+  safeZone: true,
+  furniture: true
+};
+
+// DOM Elements
+const vfCanvas = document.getElementById("viewfinderCanvas");
+const vfCtx = vfCanvas.getContext("2d");
+const fpCanvas = document.getElementById("floorplanCanvas");
+const fpCtx = fpCanvas.getContext("2d");
+
+const presetSelect = document.getElementById("presetSelect");
+const lightingSelect = document.getElementById("lightingSelect");
+const slFocal = document.getElementById("slFocal");
+const slCamY = document.getElementById("slCamY");
+const slPitch = document.getElementById("slPitch");
+const slYaw = document.getElementById("slYaw");
+const valFocal = document.getElementById("valFocal");
+const valCamY = document.getElementById("valCamY");
+const valPitch = document.getElementById("valPitch");
+const valYaw = document.getElementById("valYaw");
+const fovLabel = document.getElementById("fovLabel");
+const occlusionPill = document.getElementById("occlusionPill");
+const charListEl = document.getElementById("charList");
+const promptOutput = document.getElementById("promptOutput");
+const cursorCoord = document.getElementById("cursorCoord");
+
+// ==================== 3D PINHOLE PROJECTION ====================
+function project3D(wx, wy, wz, W, H) {
+  const cam = state.camera;
+  const dx = wx - cam.x;
+  const dy = wy - cam.y;
+  const dz = wz - cam.z;
+
+  const yaw = (cam.yaw * Math.PI) / 180;
+  const cy = Math.cos(yaw), sy = Math.sin(yaw);
+  const x1 = dx * cy - dz * sy;
+  const z1 = dx * sy + dz * cy;
+
+  const pitch = (cam.pitch * Math.PI) / 180;
+  const cp = Math.cos(pitch), sp = Math.sin(pitch);
+  const y2 = dy * cp - z1 * sp;
+  const z2 = dy * sp + z1 * cp;
+
+  if (z2 <= 0.12) return null;
+
+  // 35mm full-frame vertical height = 36mm
+  const fPx = (cam.focal / 36.0) * H;
+  const sx = W * 0.5 + (x1 / z2) * fPx;
+  const syPx = H * 0.5 - (y2 / z2) * fPx;
+  return { x: sx, y: syPx, z: z2, scale: fPx / z2 };
+}
+
+function draw3DPoly(ctx, pts3D, W, H, fillStyle, strokeStyle, lineWidth = 1) {
+  const proj = pts3D.map(p => project3D(p[0], p[1], p[2], W, H));
+  if (proj.some(p => !p)) return;
+  ctx.beginPath();
+  ctx.moveTo(proj[0].x, proj[0].y);
+  for (let i = 1; i < proj.length; i++) ctx.lineTo(proj[i].x, proj[i].y);
+  ctx.closePath();
+  if (fillStyle) { ctx.fillStyle = fillStyle; ctx.fill(); }
+  if (strokeStyle) { ctx.strokeStyle = strokeStyle; ctx.lineWidth = lineWidth; ctx.stroke(); }
+}
+
+function draw3DBox(ctx, x1, x2, y1, y2, z1, z2, W, H, colors) {
+  // Draw back-to-front faces visible from +Z camera looking toward +Z
+  // Top face
+  draw3DPoly(ctx, [[x1,y2,z1],[x2,y2,z1],[x2,y2,z2],[x1,y2,z2]], W, H, colors.top, colors.stroke, 1);
+  // Left or Right face depending on camera X
+  if (state.camera.x < x1) {
+    draw3DPoly(ctx, [[x1,y1,z1],[x1,y2,z1],[x1,y2,z2],[x1,y1,z2]], W, H, colors.side, colors.stroke, 1);
+  } else if (state.camera.x > x2) {
+    draw3DPoly(ctx, [[x2,y1,z1],[x2,y2,z1],[x2,y2,z2],[x2,y1,z2]], W, H, colors.side, colors.stroke, 1);
+  }
+  // Front face (nearest z1)
+  draw3DPoly(ctx, [[x1,y1,z1],[x2,y1,z1],[x2,y2,z1],[x1,y2,z1]], W, H, colors.front, colors.stroke, 1);
+}
+
+// ==================== VIEWFINDER RENDERER ====================
+function renderViewfinder(ctx, W, H, forceClean = false) {
+  const clean = forceClean || uiFlags.cleanMode;
+  const light = LIGHTING_PRESETS[state.lighting] || LIGHTING_PRESETS.afternoon_4800k;
+  const scaleUI = W / 540;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // 1. Background sky / outside window tint
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+  bgGrad.addColorStop(0, light.wallTop);
+  bgGrad.addColorStop(1, light.wallBottom);
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // 2. Room architecture: Floor, Back Wall, Left Wall, Right Wall, Ceiling
+  const { minX, maxX, minZ, maxZ, height: RH } = ROOM;
+  const zNear = Math.max(0.45, state.camera.z + 0.25);
+
+  // Ceiling
+  draw3DPoly(ctx, [[minX,RH,zNear],[maxX,RH,zNear],[maxX,RH,maxZ],[minX,RH,maxZ]], W, H,
+    state.lighting === "night_3200k" ? "#1a1f2c" : "#ebe7df", null);
+  // Left Wall
+  draw3DPoly(ctx, [[minX,0,zNear],[minX,RH,zNear],[minX,RH,maxZ],[minX,0,maxZ]], W, H,
+    state.lighting === "night_3200k" ? "#242938" : "#cfc7ba", "rgba(0,0,0,0.08)", 1);
+  // Right Wall
+  draw3DPoly(ctx, [[maxX,0,zNear],[maxX,RH,zNear],[maxX,RH,maxZ],[maxX,0,maxZ]], W, H,
+    state.lighting === "night_3200k" ? "#2a3144" : "#dfd8cc", "rgba(0,0,0,0.08)", 1);
+  // Back Wall
+  draw3DPoly(ctx, [[minX,0,maxZ],[maxX,0,maxZ],[maxX,RH,maxZ],[minX,RH,maxZ]], W, H,
+    light.wallBottom, "rgba(0,0,0,0.12)", 1.2 * scaleUI);
+  // Oak Wood Floor
+  draw3DPoly(ctx, [[minX,0,zNear],[maxX,0,zNear],[maxX,0,maxZ],[minX,0,maxZ]], W, H,
+    light.floorBase, null);
+
+  // Oak plank lines
+  ctx.strokeStyle = light.floorLine;
+  ctx.lineWidth = 0.8 * scaleUI;
+  for (let x = minX; x <= maxX + 0.01; x += 0.35) {
+    const p1 = project3D(x, 0, zNear, W, H);
+    const p2 = project3D(x, 0, maxZ, W, H);
+    if (p1 && p2) {
+      ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+    }
+  }
+  for (let z = 1.0; z <= maxZ; z += 0.6) {
+    const p1 = project3D(minX, 0, z, W, H);
+    const p2 = project3D(maxX, 0, z, W, H);
+    if (p1 && p2) {
+      ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+    }
+  }
+
+  // Right Floor-to-Ceiling Window + White Sheer Curtain
+  draw3DPoly(ctx, [[maxX-0.02, 0.15, 1.4], [maxX-0.02, 2.55, 1.4], [maxX-0.02, 2.55, 4.9], [maxX-0.02, 0.15, 4.9]],
+    W, H, state.lighting === "night_3200k" ? "rgba(96, 165, 250, 0.20)" : "rgba(255, 252, 240, 0.72)",
+    "rgba(255,255,255,0.65)", 1.5 * scaleUI);
+  // Curtain folds
+  for (let z = 1.6; z <= 4.8; z += 0.45) {
+    const p1 = project3D(maxX-0.03, 0.15, z, W, H);
+    const p2 = project3D(maxX-0.03, 2.55, z, W, H);
+    if (p1 && p2) {
+      ctx.strokeStyle = "rgba(255,255,255,0.35)";
+      ctx.lineWidth = 1.2 * scaleUI;
+      ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+    }
+  }
+
+  // Back-Left Wooden Living Room Door (for 00:18 sneak route!)
+  const doorCol = state.lighting === "night_3200k" ? "#4b382a" : "#8c6244";
+  const doorFrame = state.lighting === "night_3200k" ? "#36281d" : "#6b472f";
+  draw3DPoly(ctx, [[-1.78, 0, maxZ-0.01], [-0.88, 0, maxZ-0.01], [-0.88, 2.12, maxZ-0.01], [-1.78, 2.12, maxZ-0.01]],
+    W, H, doorCol, doorFrame, 2.5 * scaleUI);
+  // Door inner panel & knob
+  draw3DPoly(ctx, [[-1.68, 0.25, maxZ-0.02], [-0.98, 0.25, maxZ-0.02], [-0.98, 1.98, maxZ-0.02], [-1.68, 1.98, maxZ-0.02]],
+    W, H, null, "rgba(0,0,0,0.22)", 1 * scaleUI);
+  const knob = project3D(-1.02, 1.02, maxZ-0.03, W, H);
+  if (knob) {
+    ctx.fillStyle = "#e2c07d";
+    ctx.beginPath(); ctx.arc(knob.x, knob.y, 3.2 * scaleUI, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // 3. Living Room Furniture
+  if (uiFlags.furniture) {
+    // Minimalist Abstract Painting above Sofa
+    draw3DPoly(ctx, [[-0.25, 1.50, maxZ-0.02], [1.15, 1.50, maxZ-0.02], [1.15, 2.22, maxZ-0.02], [-0.25, 2.22, maxZ-0.02]],
+      W, H, state.lighting === "night_3200k" ? "#2c3342" : "#f3efe6", "#8c7a62", 2 * scaleUI);
+    draw3DPoly(ctx, [[-0.05, 1.62, maxZ-0.03], [0.55, 1.62, maxZ-0.03], [0.35, 2.08, maxZ-0.03]],
+      W, H, "rgba(180, 145, 105, 0.45)", null);
+
+    // Cream Rug on floor
+    draw3DPoly(ctx, [[-1.35, 0.005, 2.15], [1.35, 0.005, 2.15], [1.35, 0.005, 4.45], [-1.35, 0.005, 4.45]],
+      W, H, state.lighting === "night_3200k" ? "rgba(180, 175, 165, 0.32)" : "rgba(245, 240, 230, 0.78)",
+      "rgba(0,0,0,0.08)", 1);
+
+    // Right-Back Olive Tree Potted Plant
+    const potC = project3D(1.78, 0.25, 4.85, W, H);
+    if (potC) {
+      draw3DBox(ctx, 1.62, 1.94, 0.0, 0.42, 4.68, 5.02, W, H, {
+        top: "#c4b7a6", front: "#b3a594", side: "#9e907f", stroke: "rgba(0,0,0,0.18)"
+      });
+      const trunk1 = project3D(1.78, 0.42, 4.85, W, H);
+      const trunk2 = project3D(1.78, 1.55, 4.85, W, H);
+      if (trunk1 && trunk2) {
+        ctx.strokeStyle = "#6b4f3a"; ctx.lineWidth = 4 * scaleUI;
+        ctx.beginPath(); ctx.moveTo(trunk1.x, trunk1.y); ctx.lineTo(trunk2.x, trunk2.y); ctx.stroke();
+        const foliage = [
+          [1.78, 1.72, 4.85, 0.34], [1.58, 1.55, 4.82, 0.25], [1.98, 1.60, 4.88, 0.26]
+        ];
+        ctx.fillStyle = state.lighting === "night_3200k" ? "rgba(56, 85, 62, 0.85)" : "rgba(104, 134, 96, 0.85)";
+        foliage.forEach(([fx,fy,fz,r]) => {
+          const fp = project3D(fx,fy,fz,W,H);
+          if (fp) { ctx.beginPath(); ctx.arc(fp.x, fp.y, r * fp.scale, 0, Math.PI*2); ctx.fill(); }
+        });
+      }
+    }
+
+    // 3-Seat Light Grey Fabric Sofa (against back wall, right-of-door: X -0.60 to +1.45, Z 4.35 to 5.25)
+    const sofaCol = state.lighting === "night_3200k"
+      ? { top: "#475569", front: "#334155", side: "#283548", stroke: "rgba(0,0,0,0.28)" }
+      : { top: "#cbd5e1", front: "#b6c2d1", side: "#9aa8ba", stroke: "rgba(0,0,0,0.16)" };
+    // Backrest
+    draw3DBox(ctx, -0.60, 1.45, 0.42, 0.92, 5.02, 5.28, W, H, sofaCol);
+    // Seat cushion
+    draw3DBox(ctx, -0.60, 1.45, 0.08, 0.44, 4.35, 5.05, W, H, sofaCol);
+    // Beige throw pillow on left edge of sofa
+    draw3DBox(ctx, -0.48, -0.16, 0.44, 0.78, 4.78, 4.98, W, H, {
+      top: "#e6dcc8", front: "#dfd2ba", side: "#cbbca2", stroke: "rgba(0,0,0,0.14)"
+    });
+  }
+
+  // Sunbeam light shaft from right window
+  if (uiFlags.lights && !clean) {
+    const wTopNear = project3D(maxX, 2.4, 2.0, W, H);
+    const wBotNear = project3D(maxX, 0.2, 2.0, W, H);
+    const fFarLeft = project3D(-0.8, 0.0, 4.4, W, H);
+    const fNearLeft = project3D(-1.2, 0.0, 2.0, W, H);
+    if (wTopNear && wBotNear && fFarLeft && fNearLeft) {
+      const grad = ctx.createLinearGradient(wTopNear.x, wTopNear.y, fNearLeft.x, fNearLeft.y);
+      grad.addColorStop(0, light.sunColor);
+      grad.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(wTopNear.x, wTopNear.y);
+      ctx.lineTo(wBotNear.x, wBotNear.y);
+      ctx.lineTo(fNearLeft.x, fNearLeft.y);
+      ctx.lineTo(fFarLeft.x, fFarLeft.y);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  // Motion paths on floor (projected)
+  if (uiFlags.motion && !clean && state.motionPaths) {
+    state.motionPaths.forEach(mp => {
+      if (mp.points.length < 2) return;
+      ctx.save();
+      ctx.strokeStyle = mp.color;
+      ctx.lineWidth = 2.6 * scaleUI;
+      ctx.setLineDash([7 * scaleUI, 5 * scaleUI]);
+      ctx.beginPath();
+      mp.points.forEach((pt, idx) => {
+        const p = project3D(pt[0], 0.04, pt[1], W, H);
+        if (!p) return;
+        if (idx === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+      });
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+
+  // 4. Depth-sorted scene items: Characters + Low Oval Walnut Coffee Table (Z = 3.05)
+  const renderQueue = [];
+  if (uiFlags.furniture) {
+    renderQueue.push({ type: "table", z: 3.10 });
+  }
+  state.characters.filter(c => c.visible).forEach(c => {
+    renderQueue.push({ type: "char", z: c.z, char: c });
+  });
+  // Painter's algorithm: farthest Z first
+  renderQueue.sort((a, b) => b.z - a.z);
+
+  const screenBoxes = [];
+
+  renderQueue.forEach(item => {
+    if (item.type === "table") {
+      // Low oval walnut coffee table (X: -0.45 to +0.45, Z: 2.85 to 3.35, H: 0.36m)
+      const pCenter = project3D(0.0, 0.36, 3.10, W, H);
+      const pRight = project3D(0.46, 0.36, 3.10, W, H);
+      const pFront = project3D(0.0, 0.36, 2.85, W, H);
+      const pLegL = project3D(-0.30, 0.0, 3.10, W, H);
+      const pLegR = project3D(0.30, 0.0, 3.10, W, H);
+      if (pCenter && pRight && pFront && pLegL && pLegR) {
+        const rx = Math.abs(pRight.x - pCenter.x);
+        const ry = Math.max(8 * scaleUI, Math.abs(pFront.y - pCenter.y));
+        // Legs
+        ctx.strokeStyle = "#4a3222"; ctx.lineWidth = 4 * scaleUI;
+        ctx.beginPath();
+        ctx.moveTo(pLegL.x, pLegL.y); ctx.lineTo(pLegL.x, pCenter.y);
+        ctx.moveTo(pLegR.x, pLegR.y); ctx.lineTo(pLegR.x, pCenter.y);
+        ctx.stroke();
+        // Table top
+        ctx.fillStyle = state.lighting === "night_3200k" ? "#4f3624" : "#734c32";
+        ctx.strokeStyle = "#3d2617"; ctx.lineWidth = 1.5 * scaleUI;
+        ctx.beginPath(); ctx.ellipse(pCenter.x, pCenter.y, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+      }
+    } else {
+      const box = drawCharacterSilhouette(ctx, item.char, W, H, clean, scaleUI);
+      if (box) screenBoxes.push(box);
+    }
+  });
+
+  // 5. Foreground Male POV Hand + 100 RMB Red Note
+  if (state.showPovHand) {
+    drawPovHandAndBill(ctx, W, H, clean, scaleUI);
+  }
+
+  // 6. Overlays (Horizon, Vanishing Point, Safe Zones)
+  if (!clean) {
+    if (uiFlags.perspective) {
+      const vp = project3D(state.camera.x, state.camera.y, 100, W, H);
+      if (vp) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.45)";
+        ctx.lineWidth = 1 * scaleUI;
+        ctx.setLineDash([6 * scaleUI, 6 * scaleUI]);
+        ctx.beginPath(); ctx.moveTo(0, vp.y); ctx.lineTo(W, vp.y); ctx.stroke();
+        // Crosshair at VP
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(vp.x, vp.y, 5 * scaleUI, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = "rgba(56, 189, 248, 0.85)";
+        ctx.font = `${10 * scaleUI}px monospace`;
+        ctx.fillText(`地平线 Y=${state.camera.y.toFixed(2)}m`, 8 * scaleUI, vp.y - 5 * scaleUI);
+        ctx.restore();
+      }
+    }
+
+    if (uiFlags.safeZone) {
+      // Right platform sidebar (x >= 918/1080 = 85%) & Bottom caption bar (y >= 1530/1920 = 79.7%)
+      const rx = W * (918 / 1080);
+      const by = H * (1530 / 1920);
+      ctx.save();
+      ctx.fillStyle = "rgba(239, 68, 68, 0.10)";
+      ctx.fillRect(rx, 0, W - rx, H);
+      ctx.fillRect(0, by, rx, H - by);
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.55)";
+      ctx.lineWidth = 1.2 * scaleUI;
+      ctx.setLineDash([5 * scaleUI, 4 * scaleUI]);
+      ctx.beginPath(); ctx.moveTo(rx, 0); ctx.lineTo(rx, H); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, by); ctx.lineTo(rx, by); ctx.stroke();
+      ctx.fillStyle = "rgba(248, 113, 113, 0.9)";
+      ctx.font = `600 ${10 * scaleUI}px sans-serif`;
+      ctx.fillText("平台右侧 UI 遮挡区", rx - 98 * scaleUI, 18 * scaleUI);
+      ctx.fillText("底部文案/字幕安全红线", 10 * scaleUI, by + 16 * scaleUI);
+      ctx.restore();
+    }
+  }
+
+  return screenBoxes;
+}
+
+function drawCharacterSilhouette(ctx, c, W, H, clean, scaleUI) {
+  const topY = c.seated ? (0.44 + (c.height - 0.72)) : c.height;
+  const shoulderY = topY - 0.27;
+  const hipY = c.seated ? 0.44 : (c.height * 0.52);
+  const footY = 0.0;
+
+  const pTop = project3D(c.x, topY, c.z, W, H);
+  const pHead = project3D(c.x, topY - 0.115, c.z, W, H);
+  const pShoulder = project3D(c.x, shoulderY, c.z, W, H);
+  const pHip = project3D(c.x, hipY, c.z, W, H);
+  const pFoot = project3D(c.x, footY, c.z, W, H);
+  if (!pTop || !pHead || !pShoulder || !pHip || !pFoot) return null;
+
+  const s = pHead.scale; // pixels per meter at character's depth
+  const headR = 0.105 * s;
+  const shoulderW = 0.195 * s;
+  const waistW = 0.125 * s;
+  const skirtW = (c.id === "claude" ? 0.34 : c.id === "gpt" ? 0.30 : c.id === "deepseek" ? 0.29 : 0.22) * s;
+
+  ctx.save();
+
+  // Floor shadow
+  ctx.fillStyle = "rgba(0,0,0,0.22)";
+  ctx.beginPath();
+  ctx.ellipse(pFoot.x, pFoot.y, 0.26 * s, 0.07 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Character-specific fantasy back features (wings / tail / hair)
+  if (c.id === "gpt") {
+    // Folded white dragon wings tucked softly behind shoulders
+    ctx.fillStyle = "rgba(241, 245, 249, 0.88)";
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.85)";
+    ctx.lineWidth = 1.2 * scaleUI;
+    [-1, 1].forEach(dir => {
+      ctx.beginPath();
+      ctx.moveTo(pShoulder.x + dir * shoulderW * 0.6, pShoulder.y + 0.05 * s);
+      ctx.quadraticCurveTo(pShoulder.x + dir * 0.44 * s, pShoulder.y - 0.12 * s, pShoulder.x + dir * 0.38 * s, pHip.y + 0.10 * s);
+      ctx.lineTo(pShoulder.x + dir * shoulderW * 0.5, pHip.y + 0.02 * s);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+    });
+    // Pearl dragon tail
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 0.09 * s;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(pHip.x + 0.12 * s, pHip.y + 0.06 * s);
+    ctx.quadraticCurveTo(pHip.x + 0.45 * s, pHip.y + 0.25 * s, pHip.x + 0.32 * s, pFoot.y - 0.04 * s);
+    ctx.stroke();
+  }
+  if (c.id === "deepseek") {
+    // Gravity-draped plush blue whale tail
+    ctx.strokeStyle = "#1d4ed8";
+    ctx.lineWidth = 0.10 * s;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(pHip.x + 0.10 * s, pHip.y + 0.05 * s);
+    ctx.quadraticCurveTo(pHip.x + 0.28 * s, pHip.y + 0.28 * s, pHip.x + 0.22 * s, pFoot.y - 0.18 * s);
+    ctx.stroke();
+  }
+  if (c.id === "gemini") {
+    // Fluffy purple-pink cat tail
+    ctx.strokeStyle = "#a855f7";
+    ctx.lineWidth = 0.065 * s;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(pHip.x + 0.08 * s, pHip.y + 0.04 * s);
+    ctx.quadraticCurveTo(pHip.x + 0.32 * s, pHip.y + 0.18 * s, pHip.x + 0.25 * s, pHip.y + 0.36 * s);
+    ctx.stroke();
+  }
+
+  // Back long hair silhouette
+  ctx.fillStyle = c.hair;
+  ctx.beginPath();
+  ctx.ellipse(pHead.x, pHead.y + 0.22 * s, headR * 1.48, 0.34 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Legs (white tights / bare legs + shoes)
+  const legTopY = pHip.y;
+  const legBotY = pFoot.y;
+  ctx.fillStyle = c.id === "deepseek" ? "#f8fafc" : "#f5d0c5";
+  const legW = 0.055 * s;
+  ctx.fillRect(pHead.x - 0.08 * s, legTopY, legW, legBotY - legTopY);
+  ctx.fillRect(pHead.x + 0.025 * s, legTopY, legW, legBotY - legTopY);
+
+  // Dress / Skirt body
+  const skirtBottomY = c.id === "gemini" ? (pHip.y + 0.26 * s)
+    : c.id === "deepseek" ? (pFoot.y - 0.24 * s)
+    : (pFoot.y - 0.04 * s);
+  ctx.fillStyle = c.dress;
+  ctx.strokeStyle = "rgba(15, 23, 42, 0.45)";
+  ctx.lineWidth = 1.2 * scaleUI;
+  ctx.beginPath();
+  ctx.moveTo(pShoulder.x - shoulderW, pShoulder.y);
+  ctx.lineTo(pShoulder.x + shoulderW, pShoulder.y);
+  ctx.lineTo(pHip.x + waistW, pHip.y);
+  ctx.lineTo(pHip.x + skirtW, skirtBottomY);
+  ctx.lineTo(pHip.x - skirtW, skirtBottomY);
+  ctx.lineTo(pHip.x - waistW, pHip.y);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // DeepSeek white apron accent
+  if (c.id === "deepseek") {
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.ellipse(pHip.x, pHip.y + 0.14 * s, 0.14 * s, 0.18 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Claude orange waist sash accent
+  if (c.id === "claude") {
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(pHip.x - waistW, pHip.y - 0.08 * s, waistW * 2, 0.10 * s);
+    ctx.fillStyle = "#ea580c";
+    ctx.fillRect(pHip.x - 0.03 * s, pHip.y, 0.06 * s, 0.26 * s);
+  }
+
+  // Head & Face
+  ctx.fillStyle = "#fce7dc";
+  ctx.strokeStyle = "rgba(15, 23, 42, 0.35)";
+  ctx.lineWidth = 1.2 * scaleUI;
+  ctx.beginPath();
+  ctx.arc(pHead.x, pHead.y, headR, 0, Math.PI * 2);
+  ctx.fill(); ctx.stroke();
+
+  // Hair bangs cap
+  ctx.fillStyle = c.hair;
+  ctx.beginPath();
+  ctx.arc(pHead.x, pHead.y - headR * 0.12, headR * 1.06, Math.PI * 1.05, Math.PI * 1.95);
+  ctx.fill();
+
+  // Signature head ornaments
+  if (c.id === "deepseek") {
+    // White maid headdress + whale-fin ears + ahoge
+    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3.5 * scaleUI;
+    ctx.beginPath(); ctx.arc(pHead.x, pHead.y - headR * 0.1, headR * 1.12, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
+    ctx.fillStyle = "#1e3a8a";
+    ctx.beginPath(); ctx.ellipse(pHead.x - headR * 1.35, pHead.y - headR * 0.15, headR * 0.45, headR * 0.18, -0.3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(pHead.x + headR * 1.35, pHead.y - headR * 0.15, headR * 0.45, headR * 0.18, 0.3, 0, Math.PI * 2); ctx.fill();
+    // Ahoge
+    ctx.strokeStyle = "#2563eb"; ctx.lineWidth = 2 * scaleUI;
+    ctx.beginPath(); ctx.moveTo(pHead.x, pHead.y - headR * 1.1);
+    ctx.quadraticCurveTo(pHead.x - headR * 0.4, pHead.y - headR * 1.8, pHead.x + headR * 0.2, pHead.y - headR * 1.65); ctx.stroke();
+  } else if (c.id === "gpt") {
+    // Ivory curved dragon horns
+    ctx.strokeStyle = "#d6c8b4"; ctx.lineWidth = 3.2 * scaleUI;
+    [-1, 1].forEach(dir => {
+      ctx.beginPath();
+      ctx.moveTo(pHead.x + dir * headR * 0.65, pHead.y - headR * 0.75);
+      ctx.quadraticCurveTo(pHead.x + dir * headR * 1.15, pHead.y - headR * 1.45, pHead.x + dir * headR * 0.75, pHead.y - headR * 1.95);
+      ctx.stroke();
+    });
+  } else if (c.id === "gemini") {
+    // Cat ears
+    ctx.fillStyle = "#7c3aed";
+    [-1, 1].forEach(dir => {
+      ctx.beginPath();
+      ctx.moveTo(pHead.x + dir * headR * 0.35, pHead.y - headR * 0.85);
+      ctx.lineTo(pHead.x + dir * headR * 0.95, pHead.y - headR * 1.60);
+      ctx.lineTo(pHead.x + dir * headR * 1.05, pHead.y - headR * 0.60);
+      ctx.closePath();
+      ctx.fill();
+    });
+  } else if (c.id === "claude") {
+    // Left copper flower clip
+    ctx.fillStyle = "#ea580c";
+    ctx.beginPath(); ctx.arc(pHead.x + headR * 0.85, pHead.y - headR * 0.55, headR * 0.28, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Name & Depth Tag (hidden in Clean Reference Mode)
+  if (!clean) {
+    const label = `${c.name} (${c.z.toFixed(1)}m${c.seated ? '·坐' : ''})`;
+    ctx.font = `700 ${11 * scaleUI}px sans-serif`;
+    const tw = ctx.measureText(label).width + 12 * scaleUI;
+    const lx = pHead.x - tw / 2;
+    const ly = pTop.y - 26 * scaleUI;
+    ctx.fillStyle = "rgba(11, 15, 23, 0.82)";
+    ctx.strokeStyle = c.color;
+    ctx.lineWidth = 1.2 * scaleUI;
+    ctx.beginPath();
+    ctx.roundRect(lx, ly, tw, 18 * scaleUI, 5 * scaleUI);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = c.color;
+    ctx.fillText(label, lx + 6 * scaleUI, ly + 13 * scaleUI);
+  }
+
+  ctx.restore();
+
+  return {
+    id: c.id,
+    name: c.name,
+    z: c.z,
+    headX: pHead.x,
+    headY: pHead.y,
+    headR: headR,
+    bodyLeft: pHead.x - shoulderW * 0.95,
+    bodyRight: pHead.x + shoulderW * 0.95,
+    bodyTop: pHead.y - headR,
+    bodyBottom: pFoot.y
+  };
+}
+
+function drawPovHandAndBill(ctx, W, H, clean, scaleUI) {
+  ctx.save();
+  // Foreground left male hand holding 100 RMB red banknote
+  const hx = W * 0.16;
+  const hy = H * 0.88;
+  // Red banknote
+  ctx.save();
+  ctx.translate(hx + 34 * scaleUI, hy - 54 * scaleUI);
+  ctx.rotate(-0.18);
+  ctx.fillStyle = "#dc2626";
+  ctx.strokeStyle = "#fca5a5";
+  ctx.lineWidth = 1.5 * scaleUI;
+  ctx.beginPath();
+  ctx.roundRect(-48 * scaleUI, -26 * scaleUI, 96 * scaleUI, 52 * scaleUI, 4 * scaleUI);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "rgba(255,255,255,0.9)";
+  ctx.font = `700 ${15 * scaleUI}px sans-serif`;
+  ctx.fillText("¥100", -20 * scaleUI, 6 * scaleUI);
+  ctx.restore();
+
+  // Simplified male hand holding corner
+  ctx.fillStyle = "#e8be9e";
+  ctx.strokeStyle = "rgba(15,23,42,0.4)";
+  ctx.lineWidth = 1.5 * scaleUI;
+  ctx.beginPath();
+  ctx.moveTo(0, H);
+  ctx.lineTo(hx - 15 * scaleUI, hy - 22 * scaleUI);
+  ctx.quadraticCurveTo(hx + 22 * scaleUI, hy - 35 * scaleUI, hx + 30 * scaleUI, hy - 10 * scaleUI);
+  ctx.lineTo(hx + 18 * scaleUI, H);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  if (!clean) {
+    ctx.fillStyle = "rgba(11,15,23,0.78)";
+    ctx.beginPath();
+    ctx.roundRect(10 * scaleUI, H - 30 * scaleUI, 155 * scaleUI, 20 * scaleUI, 5 * scaleUI);
+    ctx.fill();
+    ctx.fillStyle = "#fca5a5";
+    ctx.font = `600 ${10 * scaleUI}px sans-serif`;
+    ctx.fillText("前景 POV 男主左手 + ¥100", 16 * scaleUI, H - 16 * scaleUI);
+  }
+  ctx.restore();
+}
+
+// ==================== OCCLUSION DETECTOR ====================
+function checkOcclusions(boxes) {
+  // Sort front-to-back (smallest Z first)
+  const sorted = [...boxes].sort((a, b) => a.z - b.z);
+  const warnings = [];
+  for (let i = 0; i < sorted.length; i++) {
+    for (let j = i + 1; j < sorted.length; j++) {
+      const front = sorted[i];
+      const back = sorted[j];
+      // Does front's body/head rectangle overlap back's face circle?
+      const overlapX = back.headX + back.headR * 0.65 > front.bodyLeft && back.headX - back.headR * 0.65 < front.bodyRight;
+      const overlapY = back.headY + back.headR * 0.65 > front.bodyTop && back.headY - back.headR * 0.65 < front.bodyBottom;
+      if (overlapX && overlapY) {
+        warnings.push(`${front.name} 遮挡 ${back.name} 脸部`);
+      }
+    }
+  }
+  if (warnings.length === 0) {
+    occlusionPill.className = "status-pill status-ok";
+    occlusionPill.textContent = "✅ 四人视线零遮挡";
+  } else {
+    occlusionPill.className = "status-pill status-warn";
+    occlusionPill.textContent = `⚠️ ${warnings.join(" / ")}`;
+  }
+}
+
+// ==================== TOP-DOWN FLOOR PLAN RENDERER ====================
+function worldToFP(wx, wz) {
+  const pad = 42;
+  const W = fpCanvas.width, H = fpCanvas.height;
+  const scaleX = (W - pad * 2) / (ROOM.maxX - ROOM.minX);
+  const scaleZ = (H - pad * 2) / (ROOM.maxZ - ROOM.minZ);
+  const s = Math.min(scaleX, scaleZ);
+  const offsetX = W / 2;
+  const offsetY = H - pad;
+  // +Z goes UP on floor plan (back wall at top, camera at bottom)
+  return { x: offsetX + wx * s, y: offsetY - (wz - ROOM.minZ) * s, s };
+}
+
+function fpToWorld(px, py) {
+  const pad = 42;
+  const W = fpCanvas.width, H = fpCanvas.height;
+  const s = Math.min((W - pad * 2) / (ROOM.maxX - ROOM.minX), (H - pad * 2) / (ROOM.maxZ - ROOM.minZ));
+  const offsetX = W / 2;
+  const offsetY = H - pad;
+  return {
+    x: (px - offsetX) / s,
+    z: ROOM.minZ + (offsetY - py) / s
+  };
+}
+
+function renderFloorPlan() {
+  const ctx = fpCtx;
+  const W = fpCanvas.width, H = fpCanvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const tl = worldToFP(ROOM.minX, ROOM.maxZ);
+  const br = worldToFP(ROOM.maxX, ROOM.minZ);
+  const s = tl.s;
+
+  // Room fill
+  ctx.fillStyle = "#131b2c";
+  ctx.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+
+  // 0.5m Grid
+  ctx.strokeStyle = "rgba(148, 163, 184, 0.12)";
+  ctx.lineWidth = 1;
+  for (let x = -2.5; x <= 2.51; x += 0.5) {
+    const p1 = worldToFP(x, ROOM.minZ), p2 = worldToFP(x, ROOM.maxZ);
+    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+  }
+  for (let z = 0; z <= ROOM.maxZ + 0.01; z += 0.5) {
+    const p1 = worldToFP(ROOM.minX, z), p2 = worldToFP(ROOM.maxX, z);
+    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+  }
+
+  // Room border
+  ctx.strokeStyle = "#475569";
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+
+  // Back-Left Wooden Door
+  const d1 = worldToFP(-1.78, ROOM.maxZ), d2 = worldToFP(-0.88, ROOM.maxZ);
+  ctx.strokeStyle = "#d97706"; ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.moveTo(d1.x, d1.y); ctx.lineTo(d2.x, d2.y); ctx.stroke();
+  ctx.fillStyle = "#fbbf24"; ctx.font = "600 11px sans-serif";
+  ctx.fillText("🚪 后左木门", d1.x + 4, d1.y - 10);
+
+  // Right Window
+  const w1 = worldToFP(ROOM.maxX, 1.4), w2 = worldToFP(ROOM.maxX, 4.9);
+  ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.moveTo(w1.x, w1.y); ctx.lineTo(w2.x, w2.y); ctx.stroke();
+  ctx.save();
+  ctx.translate(w1.x + 16, (w1.y + w2.y) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = "#7dd3fc"; ctx.font = "600 11px sans-serif";
+  ctx.fillText("🪟 右侧大落地窗 + 白纱帘", -65, 0);
+  ctx.restore();
+
+  // Furniture footprints
+  if (uiFlags.furniture) {
+    // Cream Rug
+    const r1 = worldToFP(-1.35, 4.45), r2 = worldToFP(1.35, 2.15);
+    ctx.fillStyle = "rgba(245, 240, 230, 0.08)";
+    ctx.strokeStyle = "rgba(245, 240, 230, 0.25)";
+    ctx.lineWidth = 1;
+    ctx.fillRect(r1.x, r1.y, r2.x - r1.x, r2.y - r1.y);
+    ctx.strokeRect(r1.x, r1.y, r2.x - r1.x, r2.y - r1.y);
+
+    // 3-seat Grey Sofa
+    const s1 = worldToFP(-0.60, 5.28), s2 = worldToFP(1.45, 4.35);
+    ctx.fillStyle = "rgba(148, 163, 184, 0.26)";
+    ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1.5;
+    ctx.fillRect(s1.x, s1.y, s2.x - s1.x, s2.y - s1.y);
+    ctx.strokeRect(s1.x, s1.y, s2.x - s1.x, s2.y - s1.y);
+    ctx.fillStyle = "#cbd5e1"; ctx.font = "11px sans-serif";
+    ctx.fillText("浅灰三人沙发", s1.x + 8, s1.y + 18);
+
+    // Oval Walnut Coffee Table
+    const tc = worldToFP(0.0, 3.10);
+    ctx.fillStyle = "rgba(146, 94, 58, 0.35)";
+    ctx.strokeStyle = "#a16207"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(tc.x, tc.y, 0.46 * s, 0.25 * s, 0, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#d6b89c"; ctx.font = "10px sans-serif";
+    ctx.fillText("胡桃木茶几", tc.x - 25, tc.y + 4);
+
+    // Olive Tree
+    const ot = worldToFP(1.78, 4.85);
+    ctx.fillStyle = "rgba(74, 222, 128, 0.25)";
+    ctx.strokeStyle = "#4ade80";
+    ctx.beginPath(); ctx.arc(ot.x, ot.y, 0.28 * s, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#86efac"; ctx.font = "10px sans-serif";
+    ctx.fillText("橄榄树", ot.x - 15, ot.y + 4);
+  }
+
+  // Lighting rays
+  if (uiFlags.lights) {
+    const light = LIGHTING_PRESETS[state.lighting];
+    ctx.save();
+    ctx.strokeStyle = light.rayColor;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 5]);
+    [2.0, 3.2, 4.4].forEach(z => {
+      const a = worldToFP(ROOM.maxX - 0.05, z);
+      const b = worldToFP(-0.4, z - 0.5);
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  // Camera FOV Cone (9:16 horizontal FOV)
+  const camP = worldToFP(state.camera.x, state.camera.z);
+  const hfovHalf = Math.atan((36.0 * (9 / 16)) / (2 * state.camera.focal));
+  const yawRad = (state.camera.yaw * Math.PI) / 180;
+  const rayLen = 5.4;
+  const leftEnd = worldToFP(
+    state.camera.x + Math.sin(yawRad - hfovHalf) * rayLen,
+    state.camera.z + Math.cos(yawRad - hfovHalf) * rayLen
+  );
+  const rightEnd = worldToFP(
+    state.camera.x + Math.sin(yawRad + hfovHalf) * rayLen,
+    state.camera.z + Math.cos(yawRad + hfovHalf) * rayLen
+  );
+  ctx.fillStyle = "rgba(56, 189, 248, 0.09)";
+  ctx.beginPath();
+  ctx.moveTo(camP.x, camP.y);
+  ctx.lineTo(leftEnd.x, leftEnd.y);
+  ctx.lineTo(rightEnd.x, rightEnd.y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "rgba(56, 189, 248, 0.45)";
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // Motion paths on floorplan
+  if (uiFlags.motion && state.motionPaths) {
+    state.motionPaths.forEach(mp => {
+      if (mp.points.length < 2) return;
+      ctx.save();
+      ctx.strokeStyle = mp.color;
+      ctx.lineWidth = 2.2;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      mp.points.forEach((pt, idx) => {
+        const p = worldToFP(pt[0], pt[1]);
+        if (idx === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+      });
+      ctx.stroke();
+      // Arrowhead at end
+      const pPrev = worldToFP(mp.points[mp.points.length-2][0], mp.points[mp.points.length-2][1]);
+      const pEnd = worldToFP(mp.points[mp.points.length-1][0], mp.points[mp.points.length-1][1]);
+      const ang = Math.atan2(pEnd.y - pPrev.y, pEnd.x - pPrev.x);
+      ctx.setLineDash([]);
+      ctx.fillStyle = mp.color;
+      ctx.beginPath();
+      ctx.moveTo(pEnd.x, pEnd.y);
+      ctx.lineTo(pEnd.x - 10 * Math.cos(ang - 0.4), pEnd.y - 10 * Math.sin(ang - 0.4));
+      ctx.lineTo(pEnd.x - 10 * Math.cos(ang + 0.4), pEnd.y - 10 * Math.sin(ang + 0.4));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    });
+  }
+
+  // Characters on floorplan
+  state.characters.filter(c => c.visible).forEach(c => {
+    const p = worldToFP(c.x, c.z);
+    // Sightline from camera
+    ctx.strokeStyle = "rgba(255,255,255,0.12)";
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(camP.x, camP.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+
+    ctx.fillStyle = c.color;
+    ctx.strokeStyle = "#0b0f17";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 13, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = "#0b0f17";
+    ctx.font = "700 10px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(c.name[0], p.x, p.y + 3.5);
+
+    ctx.fillStyle = c.color;
+    ctx.font = "600 11px sans-serif";
+    ctx.fillText(`${c.name} (${c.z.toFixed(2)}m)`, p.x, p.y - 17);
+    ctx.textAlign = "left";
+  });
+
+  // Camera Marker
+  ctx.fillStyle = "#0284c7";
+  ctx.strokeStyle = "#e0f2fe";
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(camP.x, camP.y, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#e0f2fe";
+  ctx.font = "700 11px sans-serif";
+  ctx.fillText(`📷 男主 POV (Y:${state.camera.y.toFixed(2)}m)`, camP.x + 16, camP.y + 4);
+}
+
+// ==================== DYNAMIC CLEAN PROMPT GENERATOR ====================
+function generateCleanPrompt() {
+  const light = LIGHTING_PRESETS[state.lighting];
+  const visibleChars = state.characters.filter(c => c.visible).sort((a, b) => a.z - b.z);
+
+  const depthLabel = z => z < 2.65 ? "前景" : z < 4.05 ? "中景" : "后景";
+  const sideLabel = x => x < -0.30 ? "偏左" : x > 0.30 ? "偏右" : "居中";
+
+  const charLines = visibleChars.map((c, idx) => {
+    const pos = `${depthLabel(c.z)}${sideLabel(c.x)}（距镜头约${(c.z - state.camera.z).toFixed(1)}米）`;
+    const poseStr = c.seated ? "坐姿" : "站立";
+    return `${idx + 1}. 【${pos} · ${c.name}（${c.refTag}）】：100%严格锁定 ${c.refTag} 的真实人脸骨相、发色发型、奇幻材质与哑光高定穿搭（身高比例约${Math.round(c.height*100)}cm，${poseStr}），${c.action}；`;
+  }).join("\n");
+
+  const furnitureDesc = uiFlags.furniture
+    ? "室内陈设清晰统一：浅暖色原木橡木地板、中央铺浅米白色素色织纹地毯、地毯中央摆放矮椭圆深胡桃木茶几、后景靠墙摆放浅灰色三人布艺沙发配米色抱枕、沙发上方墙面挂一幅极简低饱和抽象画、右后方角落立一盆舒展的橄榄树绿植，左后方走廊可见一扇虚化的暖木色客厅房门。"
+    : "现代简约原木地板客厅，左后方可见一扇虚化的木质房门。";
+
+  const povHandDesc = state.showPovHand
+    ? `\n前景交互：${state.povPropText}（手部五指解剖自然精准）。`
+    : "";
+
+  const prompt =
+`第一人称视角（POV）电影级真人实拍画面，9:16竖屏构图，${state.camera.focal}mm定焦电影镜头（机位高度约${state.camera.y.toFixed(2)}米，微俯仰角${state.camera.pitch.toFixed(1)}°），真实居家客厅环境。
+【空间与家具】：${furnitureDesc}
+【布光与影调】：${light.promptDesc}。${povHandDesc}
+【人物纵深站位（严格按前中后三层透视排布，四人视线零遮挡、身高比例真实协调）】：
+${charLines}
+
+所有人物均拥有真实电影演员皮肤纹理、真实发丝透光感与重工哑光面料肌理，脚底及沙发接触处有自然真实的环境投影，光影色温完全统一融入同一客厅空间，无文字无水印，4K超高清实拍。`;
+
+  promptOutput.value = prompt;
+}
+
+// ==================== CHARACTER UI ====================
+function buildCharControls() {
+  charListEl.innerHTML = "";
+  state.characters.forEach((c, idx) => {
+    const div = document.createElement("div");
+    div.className = "char-card";
+    div.innerHTML = `
+      <div class="char-top">
+        <div class="char-name">
+          <span class="dot" style="background:${c.color}"></span>
+          <span>${c.name}</span>
+          <span class="char-meta">${Math.round(c.height*100)}cm · X:${c.x.toFixed(2)} Z:${c.z.toFixed(2)}</span>
+        </div>
+        <div class="char-btns">
+          <button class="mini-btn ${c.seated ? 'active' : ''}" data-act="seat" data-idx="${idx}">${c.seated ? '坐姿' : '站立'}</button>
+          <button class="mini-btn ${c.visible ? 'active' : ''}" data-act="vis" data-idx="${idx}">${c.visible ? '显示' : '隐藏'}</button>
+        </div>
+      </div>
+      <input class="action-input" type="text" data-idx="${idx}" value="${c.action.replace(/"/g, '&quot;')}" placeholder="输入角色动作神态描述..." />
+    `;
+    charListEl.appendChild(div);
+  });
+
+  charListEl.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const i = Number(btn.dataset.idx);
+      if (btn.dataset.act === "seat") state.characters[i].seated = !state.characters[i].seated;
+      if (btn.dataset.act === "vis") state.characters[i].visible = !state.characters[i].visible;
+      buildCharControls();
+      updateAll();
+    });
+  });
+  charListEl.querySelectorAll(".action-input").forEach(inp => {
+    inp.addEventListener("input", () => {
+      state.characters[Number(inp.dataset.idx)].action = inp.value;
+      generateCleanPrompt();
+    });
+  });
+}
+
+function syncSliders() {
+  slFocal.value = state.camera.focal;
+  slCamY.value = state.camera.y;
+  slPitch.value = state.camera.pitch;
+  slYaw.value = state.camera.yaw;
+  valFocal.textContent = `${state.camera.focal}mm`;
+  valCamY.textContent = `${state.camera.y.toFixed(2)}m`;
+  valPitch.textContent = `${state.camera.pitch.toFixed(1)}°`;
+  valYaw.textContent = `${state.camera.yaw.toFixed(1)}°`;
+  lightingSelect.value = state.lighting;
+  document.getElementById("chkPovHand").checked = state.showPovHand;
+
+  const vfov = (2 * Math.atan(18 / state.camera.focal) * 180 / Math.PI).toFixed(1);
+  fovLabel.textContent = `${state.camera.focal}mm · VFOV ${vfov}°`;
+}
+
+function updateAll() {
+  syncSliders();
+  const boxes = renderViewfinder(vfCtx, vfCanvas.width, vfCanvas.height, false);
+  checkOcclusions(boxes);
+  renderFloorPlan();
+  generateCleanPrompt();
+  // Update numeric coordinates in char cards without rebuilding input focus
+  const metas = charListEl.querySelectorAll(".char-meta");
+  state.characters.forEach((c, i) => {
+    if (metas[i]) metas[i].textContent = `${Math.round(c.height*100)}cm · X:${c.x.toFixed(2)} Z:${c.z.toFixed(2)}`;
+  });
+}
+
+// ==================== FLOORPLAN DRAGGING ====================
+let dragTarget = null; // { type: 'char'|'cam', idx?: number }
+
+function getCanvasPos(e) {
+  const rect = fpCanvas.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return {
+    x: (clientX - rect.left) * (fpCanvas.width / rect.width),
+    y: (clientY - rect.top) * (fpCanvas.height / rect.height)
+  };
+}
+
+function onPointerDown(e) {
+  const pos = getCanvasPos(e);
+  // Check characters first
+  for (let i = 0; i < state.characters.length; i++) {
+    const c = state.characters[i];
+    if (!c.visible) continue;
+    const p = worldToFP(c.x, c.z);
+    if (Math.hypot(pos.x - p.x, pos.y - p.y) <= 18) {
+      dragTarget = { type: "char", idx: i };
+      return;
+    }
+  }
+  // Check camera
+  const cp = worldToFP(state.camera.x, state.camera.z);
+  if (Math.hypot(pos.x - cp.x, pos.y - cp.y) <= 18) {
+    dragTarget = { type: "cam" };
+  }
+}
+
+function onPointerMove(e) {
+  const pos = getCanvasPos(e);
+  const w = fpToWorld(pos.x, pos.y);
+  cursorCoord.textContent = `X: ${w.x.toFixed(2)}m, Z: ${w.z.toFixed(2)}m`;
+  if (!dragTarget) return;
+  if (e.cancelable) e.preventDefault();
+
+  const cx = Math.max(ROOM.minX + 0.25, Math.min(ROOM.maxX - 0.25, w.x));
+  if (dragTarget.type === "char") {
+    const cz = Math.max(state.camera.z + 0.85, Math.min(ROOM.maxZ - 0.35, w.z));
+    state.characters[dragTarget.idx].x = Math.round(cx * 100) / 100;
+    state.characters[dragTarget.idx].z = Math.round(cz * 100) / 100;
+  } else if (dragTarget.type === "cam") {
+    const cz = Math.max(0.05, Math.min(1.60, w.z));
+    state.camera.x = Math.round(cx * 100) / 100;
+    state.camera.z = Math.round(cz * 100) / 100;
+  }
+  updateAll();
+}
+
+function onPointerUp() { dragTarget = null; }
+
+fpCanvas.addEventListener("mousedown", onPointerDown);
+window.addEventListener("mousemove", onPointerMove);
+window.addEventListener("mouseup", onPointerUp);
+fpCanvas.addEventListener("touchstart", onPointerDown, { passive: false });
+window.addEventListener("touchmove", onPointerMove, { passive: false });
+window.addEventListener("touchend", onPointerUp);
+
+// ==================== EVENT LISTENERS ====================
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2000);
+}
+
+presetSelect.addEventListener("change", () => {
+  activePresetKey = presetSelect.value;
+  state = deepClone(PRESETS[activePresetKey]);
+  buildCharControls();
+  updateAll();
+  showToast(`已切换预设：${state.shotTitle}`);
+});
+
+document.getElementById("btnResetPreset").addEventListener("click", () => {
+  state = deepClone(PRESETS[activePresetKey]);
+  buildCharControls();
+  updateAll();
+  showToast("已复位当前机位预设");
+});
+
+slFocal.addEventListener("input", () => { state.camera.focal = Number(slFocal.value); updateAll(); });
+slCamY.addEventListener("input", () => { state.camera.y = Number(slCamY.value); updateAll(); });
+slPitch.addEventListener("input", () => { state.camera.pitch = Number(slPitch.value); updateAll(); });
+slYaw.addEventListener("input", () => { state.camera.yaw = Number(slYaw.value); updateAll(); });
+lightingSelect.addEventListener("change", () => { state.lighting = lightingSelect.value; updateAll(); });
+
+document.getElementById("chkCleanMode").addEventListener("change", e => { uiFlags.cleanMode = e.target.checked; updateAll(); });
+document.getElementById("chkPerspective").addEventListener("change", e => { uiFlags.perspective = e.target.checked; updateAll(); });
+document.getElementById("chkLights").addEventListener("change", e => { uiFlags.lights = e.target.checked; updateAll(); });
+document.getElementById("chkMotion").addEventListener("change", e => { uiFlags.motion = e.target.checked; updateAll(); });
+document.getElementById("chkSafeZone").addEventListener("change", e => { uiFlags.safeZone = e.target.checked; updateAll(); });
+document.getElementById("chkFurniture").addEventListener("change", e => { uiFlags.furniture = e.target.checked; updateAll(); });
+document.getElementById("chkPovHand").addEventListener("change", e => { state.showPovHand = e.target.checked; updateAll(); });
+
+document.getElementById("btnCopyPrompt").addEventListener("click", () => {
+  navigator.clipboard.writeText(promptOutput.value).then(() => showToast("✅ 已复制纯净版 Seedream 5.5 提示词"));
+});
+
+// Export 1080x1920 Clean Reference PNG
+document.getElementById("btnExportPng").addEventListener("click", () => {
+  const off = document.createElement("canvas");
+  off.width = 1080;
+  off.height = 1920;
+  const octx = off.getContext("2d");
+  renderViewfinder(octx, 1080, 1920, uiFlags.cleanMode);
+  const link = document.createElement("a");
+  link.download = `${state.episode || 'EP'}_blocking_1080x1920.png`;
+  link.href = off.toDataURL("image/png");
+  link.click();
+  showToast("📸 已导出 1080×1920 高清构图参考底图");
+});
+
+// Export Shot JSON for Git
+document.getElementById("btnExportJson").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${(state.episode || "ep").toLowerCase().replace(/\./g, "")}_shot_blocking.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("💾 分镜 JSON 已导出，可直接存入 Git 仓库 presets/");
+});
+
+// Import Shot JSON
+const jsonInput = document.getElementById("jsonFileInput");
+document.getElementById("btnImportJson").addEventListener("click", () => jsonInput.click());
+jsonInput.addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const parsed = JSON.parse(ev.target.result);
+      if (parsed.camera && Array.isArray(parsed.characters)) {
+        state = {
+          episode: parsed.meta?.episode || parsed.episode || "导入分镜",
+          shotTitle: parsed.meta?.title || parsed.shotTitle || file.name,
+          camera: parsed.camera,
+          lighting: parsed.lighting || "afternoon_4800k",
+          showPovHand: parsed.show_pov_hand ?? parsed.showPovHand ?? true,
+          povPropText: parsed.povPropText || "前景男主左手自然入画",
+          characters: parsed.characters.map(c => ({
+            id: c.id,
+            name: c.name,
+            refTag: c.ref_tag || c.refTag || "@图",
+            color: c.color || "#38bdf8",
+            hair: c.hair_color || c.hair || "#38bdf8",
+            dress: c.dress_color || c.dress || "#1e293b",
+            x: c.x, z: c.z, height: c.height || 1.65,
+            seated: !!c.seated, visible: c.visible !== false,
+            action: c.action || ""
+          })),
+          motionPaths: parsed.motion_paths || parsed.motionPaths || []
+        };
+        buildCharControls();
+        updateAll();
+        showToast(`📂 已加载分镜存档：${file.name}`);
+      } else {
+        showToast("❌ JSON 缺少 camera 或 characters 字段");
+      }
+    } catch (err) {
+      showToast("❌ JSON 解析失败：" + err.message);
+    }
+  };
+  reader.readAsText(file);
+  jsonInput.value = "";
+});
+
+// Init
+buildCharControls();
+updateAll();
+</script>
+</body>
+</html>

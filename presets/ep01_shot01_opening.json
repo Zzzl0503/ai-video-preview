@@ -1,0 +1,120 @@
+{
+  "meta": {
+    "series": "完蛋！我被AI包围了",
+    "episode": "EP.01",
+    "shot_id": "EP01_SHOT01_OPENING",
+    "title": "00:00 100块奖金开场（三层纵深标准机位）",
+    "aspect": "9:16",
+    "resolution": [
+      1080,
+      1920
+    ]
+  },
+  "camera": {
+    "x": 0.0,
+    "y": 1.18,
+    "z": 0.2,
+    "focal": 30,
+    "pitch": -3.5,
+    "yaw": 0.0
+  },
+  "lighting": "afternoon_4800k",
+  "show_pov_hand": true,
+  "pov_prop_label": "100元人民币红色纸币",
+  "characters": [
+    {
+      "id": "deepseek",
+      "name": "大肥鱼",
+      "ref_tag": "@图1",
+      "color": "#38bdf8",
+      "dress_color": "#1e3a5f",
+      "hair_color": "#2563eb",
+      "x": -0.12,
+      "z": 2.45,
+      "height": 1.62,
+      "seated": false,
+      "visible": true,
+      "action": "眼睛发亮、兴高采烈地抬头盯着前景男主手中的100元红钞票"
+    },
+    {
+      "id": "claude",
+      "name": "小克",
+      "ref_tag": "@图2",
+      "color": "#f97316",
+      "dress_color": "#e7e0d2",
+      "hair_color": "#c25e26",
+      "x": -0.74,
+      "z": 3.45,
+      "height": 1.68,
+      "seated": false,
+      "visible": true,
+      "action": "双臂优雅抱胸，面无表情地微抬下巴淡淡瞥着前方的大肥鱼"
+    },
+    {
+      "id": "gemini",
+      "name": "哈基米",
+      "ref_tag": "@图5",
+      "color": "#c084fc",
+      "dress_color": "#3b2f63",
+      "hair_color": "#8b5cf6",
+      "x": 0.72,
+      "z": 3.35,
+      "height": 1.56,
+      "seated": false,
+      "visible": true,
+      "action": "微歪着头，带着古灵精怪的看热闹甜酷笑容"
+    },
+    {
+      "id": "gpt",
+      "name": "GPT",
+      "ref_tag": "@图3与@图4",
+      "color": "#e2e8f0",
+      "dress_color": "#f1f5f9",
+      "hair_color": "#cbd5e1",
+      "x": 0.44,
+      "z": 4.65,
+      "height": 1.75,
+      "seated": true,
+      "visible": true,
+      "action": "优雅舒展地靠坐在浅灰布艺沙发上，白色龙翼自然收拢贴背，一手轻托香腮微笑看戏"
+    }
+  ],
+  "motion_paths": [
+    {
+      "label": "00:18 小克+哈基米踮脚偷溜动线",
+      "color": "#fbbf24",
+      "points": [
+        [
+          -0.74,
+          3.45
+        ],
+        [
+          -1.05,
+          4.25
+        ],
+        [
+          -1.32,
+          5.15
+        ]
+      ]
+    },
+    {
+      "label": "哈基米跟进动线",
+      "color": "#c084fc",
+      "points": [
+        [
+          0.72,
+          3.35
+        ],
+        [
+          -0.15,
+          3.95
+        ],
+        [
+          -1.18,
+          5.05
+        ]
+      ]
+    }
+  ]
+}

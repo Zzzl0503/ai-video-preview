@@ -1,0 +1,112 @@
+{
+  "meta": {
+    "series": "完蛋！我被AI包围了",
+    "episode": "EP.01",
+    "shot_id": "EP01_SHOT02_SNEAK",
+    "title": "00:18 抱胳膊撒泼 + 背后偷溜",
+    "aspect": "9:16",
+    "resolution": [
+      1080,
+      1920
+    ]
+  },
+  "camera": {
+    "x": 0.0,
+    "y": 1.18,
+    "z": 0.2,
+    "focal": 30,
+    "pitch": -3.5,
+    "yaw": 0.0
+  },
+  "lighting": "afternoon_4800k",
+  "show_pov_hand": true,
+  "pov_prop_label": "男主左手递钱并比嘘",
+  "characters": [
+    {
+      "id": "deepseek",
+      "name": "大肥鱼",
+      "ref_tag": "@图1",
+      "color": "#38bdf8",
+      "dress_color": "#1e3a5f",
+      "hair_color": "#2563eb",
+      "x": 0.26,
+      "z": 1.65,
+      "height": 1.62,
+      "seated": false,
+      "visible": true,
+      "action": "扑近前景右侧抱住男主右臂衣袖埋头闭眼撒娇耍赖，完全背对后方房门"
+    },
+    {
+      "id": "claude",
+      "name": "小克",
+      "ref_tag": "@图2",
+      "color": "#f97316",
+      "dress_color": "#e7e0d2",
+      "hair_color": "#c25e26",
+      "x": -1.02,
+      "z": 4.45,
+      "height": 1.68,
+      "seated": false,
+      "visible": true,
+      "action": "捏着100元红钞票、轻提裙摆微微猫腰踮脚往左后方木质房门偷溜"
+    },
+    {
+      "id": "gemini",
+      "name": "哈基米",
+      "ref_tag": "@图5",
+      "color": "#c084fc",
+      "dress_color": "#3b2f63",
+      "hair_color": "#8b5cf6",
+      "x": -0.58,
+      "z": 4.1,
+      "height": 1.56,
+      "seated": false,
+      "visible": true,
+      "action": "紧跟小克轻手轻脚偷溜，压低声音偷笑并俏皮回头张望"
+    },
+    {
+      "id": "gpt",
+      "name": "GPT",
+      "ref_tag": "@图3与@图4",
+      "color": "#e2e8f0",
+      "dress_color": "#f1f5f9",
+      "hair_color": "#cbd5e1",
+      "x": 0.62,
+      "z": 4.65,
+      "height": 1.75,
+      "seated": true,
+      "visible": true,
+      "action": "靠坐在后景沙发上轻掩嘴唇，笑意盈盈地看着前方闹剧"
+    }
+  ],
+  "motion_paths": [
+    {
+      "label": "小克偷溜至门边",
+      "color": "#fbbf24",
+      "points": [
+        [
+          -1.02,
+          4.45
+        ],
+        [
+          -1.32,
+          5.2
+        ]
+      ]
+    },
+    {
+      "label": "哈基米跟溜回头吐舌",
+      "color": "#c084fc",
+      "points": [
+        [
+          -0.58,
+          4.1
+        ],
+        [
+          -1.15,
+          5.05
+        ]
+      ]
+    }
+  ]
+}
